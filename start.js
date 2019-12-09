@@ -2,10 +2,11 @@ import fastify from './server.js';
 import {pull} from "./pull.js";
 import {defineRoutes} from './utils.js';
 import objects from './routes/objects.js';
-
+import stats from './routes/stats.js';
 const start = async () => {
     // register routes
     defineRoutes(fastify, objects);
+    defineRoutes(fastify, stats);
     // `pull` route will be here for some time
     fastify.route({
         url: '/pull',

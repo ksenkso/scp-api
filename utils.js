@@ -18,7 +18,16 @@ const CREATED_OBJECT = {
         class: {type: 'string'},
     }
 };
-export const types = {OBJECT_DATA, CREATED_OBJECT};
+
+const STATS_DATA = {
+    type: 'object',
+    properties: {
+        total: {type: 'integer'},
+        last: {type: 'integer'},
+        lastModified: {type: 'integer'},
+    }
+};
+export const types = {OBJECT_DATA, CREATED_OBJECT, STATS_DATA};
 
 export async function getObject(connection, id) {
     console.log(id);
@@ -32,7 +41,7 @@ export async function getObject(connection, id) {
 /**
  *
  * @param {fastify.FastifyInstance} fastify
- * @param {object[]} routes
+ * @param {*[]} routes
  */
 export function defineRoutes(fastify, routes) {
     routes.forEach(route => fastify.route(route));
