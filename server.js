@@ -68,9 +68,10 @@ fastify.route({
             }
         }
     },
-    handler: async (req, res) => {
+    handler: async () => {
         const connection = await fastify.mysql.getConnection();
         const [rows] = await connection.query('select * from objects');
+        connection.release();
         return rows;
     }
 });
@@ -92,6 +93,7 @@ fastify.route({
             sql: 'insert into objects (name, number, link) value (?, ?, ?)',
             values: [req.body.name, req.body.number, req.body.link]
         });
+        connection.release();
         res.status(201).send(rows.insertId);
     }
 });
@@ -105,27 +107,30 @@ fastify.route({
             200: types.CREATED_OBJECT
         }
     },
-    handler: async (req, res) => {
+    handler: async (req) => {
         const connection = await fastify.mysql.getConnection();
         const keys = ['name', 'number', 'link', 'class'].filter(k => req.body[k] !== undefined);
         const values = keys.map(k => req.body[k]);
-        const [rows] = await connection.query({
+        await connection.query({
             sql: `update objects set ${keys.map(k => `${k} = ?`).join(',')} where id = ?`,
             values: [...values, req.params.id]
         });
-        return await getObject(connection, req.params.id);
+        const object = await getObject(connection, req.params.id);
+        connection.release();
+        return object
     }
 });
 
 fastify.route({
     url: '/objects/:number',
     method: 'GET',
-    handler: async (req, res) => {
+    handler: async (req) => {
         const connection = await fastify.mysql.getConnection();
         const [rows] = await connection.query({
             sql: 'select * from objects where number = ?',
             values: [req.params.number]
         });
+        connection.release();
         return rows || null;
     }
 });
@@ -133,21 +138,24 @@ fastify.route({
 fastify.route({
     url: '/objects/byId/:id',
     method: 'GET',
-    handler: async (req, res) => {
+    handler: async (req) => {
         const connection = await fastify.mysql.getConnection();
-        return await getObject(connection, req.params.id);
+        const object = await getObject(connection, req.params.id);
+        connection.release();
+        return object;
     }
 });
 
 fastify.route({
     url: '/objects/:id',
     method: 'DELETE',
-    handler: async (req, res) => {
+    handler: async (req) => {
         const connection = await fastify.mysql.getConnection();
         await connection.query({
             sql: 'delete from objects where id = ?',
             values: [req.params.id]
         });
+        connection.release();
         return req.params.id;
     }
 });
@@ -156,8 +164,12 @@ fastify.route({
     url: '/pull',
     method: 'GET',
     handler: async (req, res) => {
-        return pull(await fastify.mysql.getConnection())
-            .then(() => res.status(200).send('OK'));
+        const connection = await fastify.mysql.getConnection();
+        return pull(connection)
+            .then(() => {
+                connection.release();
+                res.status(200).send('OK')
+            });
     }
 });
 
