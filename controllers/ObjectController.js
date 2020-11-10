@@ -1,5 +1,4 @@
 import fastify from "../server.js";
-import {getObject} from "../utils.js";
 
 export const deleteObject = async (req) => {
     const connection = await fastify.mysql.getConnection();
@@ -61,3 +60,12 @@ export const createObject = async (req, res) => {
     connection.release();
     res.status(201).send(rows.insertId);
 };
+
+async function getObject(connection, id) {
+    console.log(id);
+    const [rows] = await connection.query({
+        sql: 'select * from objects where id = ?',
+        values: [id]
+    });
+    return rows[0] || null;
+}

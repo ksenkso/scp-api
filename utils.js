@@ -29,15 +29,6 @@ const STATS_DATA = {
 };
 export const types = {OBJECT_DATA, CREATED_OBJECT, STATS_DATA};
 
-export async function getObject(connection, id) {
-    console.log(id);
-    const [rows] = await connection.query({
-        sql: 'select * from objects where id = ?',
-        values: [id]
-    });
-    return rows[0] || null;
-}
-
 /**
  *
  * @param {fastify.FastifyInstance} fastify
