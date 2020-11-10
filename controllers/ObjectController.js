@@ -11,22 +11,26 @@ export const deleteObject = async (req) => {
 };
 
 
-export const getById = async (req) => {
+export const getById = async (req, reply) => {
     const connection = await fastify.mysql.getConnection();
     const object = await getObject(connection, req.params.id);
     connection.release();
-    return object;
+    reply
+        .code(object ? 200 : 204)
+        .send(object)
 };
 
 
-export const getByNumber = async (req) => {
+export const getByNumber = async (req, reply) => {
     const connection = await fastify.mysql.getConnection();
     const [rows] = await connection.query({
         sql: 'select * from objects where number = ?',
         values: [req.params.number]
     });
     connection.release();
-    return rows || null;
+    reply
+        .code(rows.length ? 200 : 204)
+        .send(rows[0]);
 };
 
 
