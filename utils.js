@@ -24,7 +24,7 @@ const STATS_DATA = {
     properties: {
         total: {type: 'integer'},
         last: {type: 'integer'},
-        lastModified: {type: 'integer'},
+        lastPull: {type: 'integer'},
     }
 };
 export const types = {OBJECT_DATA, CREATED_OBJECT, STATS_DATA};
