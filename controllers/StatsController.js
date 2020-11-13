@@ -2,7 +2,7 @@ import fastify from '../server.js';
 
 /**
  *
- * @return {Promise<{total: number, lastModified: number, last: number}>}
+ * @return {Promise<{total: number, lastPull: number, last: number}>}
  */
 export const getStats = async () => {
     const connection = await fastify.mysql.getConnection();
