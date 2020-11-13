@@ -1,5 +1,6 @@
 import request from 'request-promise-native';
 import jsdom from 'jsdom';
+import fastify from '../server.js';
 
 const links = [
     'http://scpfoundation.net/scp-list',
@@ -9,7 +10,8 @@ const links = [
     'http://scpfoundation.net/scp-list-5',
 ];
 
-export async function pull(connection) {
+export async function pull(req, res) {
+    const connection = await fastify.mysql.getConnection();
     const tasks = links.map(async link => {
         console.log('Starting link', link, '...');
         const selector = ['keter', 'euclid', 'safe', 'na', 'thaumiel', 'nonstandard']
@@ -33,9 +35,20 @@ export async function pull(connection) {
                 };
             });
         console.log('Inserting to DB...');
-        return loadObjects(connection, objects).then(() => console.log(`${link} done!`));
+        return loadObjects(connection, objects).then(() => {
+            connection.release();
+            console.log(`${link} done!`);
+        });
     });
-    return Promise.all(tasks);
+
+    Promise.all(tasks)
+        .then(() => connection.query({
+            sql: `update stats set value = ? where name = 'lastPull'`,
+            values: [`${+new Date / 1000 | 0}`],
+        }))
+        .then(() => {
+            res.code(200).send('OK');
+        })
 }
 
 /**
@@ -54,10 +67,6 @@ async function loadObjects(connection, objects) {
     await connection.query({
         sql: 'insert into objects (name, number, link, class) values ' + template.join(','),
         values,
-    });
-    await connection.query({
-        sql: `update stats set value = ? where name = 'lastPull'`,
-        values: [`${+new Date / 1000 | 0}`],
     });
 }
 
