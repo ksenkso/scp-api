@@ -12,7 +12,7 @@ const links = [
 export async function pull(connection) {
     const tasks = links.map(async link => {
         console.log('Starting link', link, '...');
-        const selector = ['keter', 'euclid', 'safe', 'na', 'thaumiel', 'nonstandard',]
+        const selector = ['keter', 'euclid', 'safe', 'na', 'thaumiel', 'nonstandard']
             .map(type => `img[alt^="${type}"]`)
             .join(',');
 
@@ -51,9 +51,13 @@ async function loadObjects(connection, objects) {
         template.push(`(?, ?, ?, ?)`);
         values.push(object.name, object.number, object.link, object.class);
     });
-    connection.query({
+    await connection.query({
         sql: 'insert into objects (name, number, link, class) values ' + template.join(','),
-        values
+        values,
+    });
+    await connection.query({
+        sql: `update stats set value = ? where name = 'lastPull'`,
+        values: [`${+new Date / 1000 | 0}`],
     });
 }
 
