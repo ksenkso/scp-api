@@ -16,14 +16,10 @@ export const deleteObject = async (req) => {
 
 export const getByNumber = async (req, reply) => {
     const connection = await fastify.mysql.getConnection();
-    const [rows] = await connection.query({
-        sql: 'select * from objects where number = ?',
-        values: [req.params.number]
-    });
-    connection.release();
+    const object = await getObject(connection, req.params.number);
     reply
-        .code(rows.length ? 200 : 204)
-        .send(rows[0]);
+        .code(object ? 200 : 204)
+        .send(object ? object : '');
 };
 
 
