@@ -1,6 +1,6 @@
 /**
  *
- * @typedef {{id?: number, name: string, number: number, link: string, class: string}} ScpObject
+ * @typedef {{id: number | null, name: string, number: number, link: string, class: string}} ScpObject
  */
 import Fastify from 'fastify';
 import fastifyMysql from 'fastify-mysql';
