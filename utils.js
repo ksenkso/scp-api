@@ -1,3 +1,5 @@
+import fastify from './server.js';
+
 const OBJECT_DATA = {
     type: 'object',
     properties: {
@@ -25,4 +27,11 @@ export const types = {OBJECT_DATA, STATS_DATA};
  */
 export function defineRoutes(fastify, routes) {
     routes.forEach(route => fastify.route(route));
+}
+
+export async function withConnection(cb) {
+    const connection = await fastify.mysql.getConnection();
+    const result = await cb(connection);
+    connection.release();
+    return result;
 }
