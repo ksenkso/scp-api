@@ -1,7 +1,8 @@
 import request from 'request-promise-native';
 import jsdom from 'jsdom';
-import fastify from '../server.js';
 import debug from 'debug';
+import {withConnection} from '../utils.js';
+
 const log = debug('App:AdminController');
 
 const links = [
@@ -12,42 +13,43 @@ const links = [
     'http://scpfoundation.net/scp-list-5',
 ];
 
-export async function pull(req, res) {
-    const connection = await fastify.mysql.getConnection();
-    const tasks = links.map(async (link, index) => {
-        log('Starting link', link, '...')
-        const selector = ['keter', 'euclid', 'safe', 'na', 'thaumiel', 'nonstandard']
-            .map(type => `img[alt^="${type}"]`)
-            .join(',');
+export async function pull(req, reply) {
+    withConnection(async connection => {
+        const tasks = links.map(async (link, index) => {
+            log('Starting link', link, '...')
+            const selector = ['keter', 'euclid', 'safe', 'na', 'thaumiel', 'nonstandard']
+                .map(type => `img[alt^="${type}"]`)
+                .join(',');
 
-        const html = await request(link);
-        log(`Page ${index + 1} loaded.`);
-        const dom = new jsdom.JSDOM(html);
-        const elements = Array.from(dom
-            .window
-            .document
-            .querySelectorAll(selector),
-        )
-            .slice(6)
-            .map(image => {
-                return {
-                    number: getNumber(image),
-                    name: getName(image),
-                    link: getLink(image),
-                    class: getClass(image),
-                };
-            });
-        return loadObjects(connection, elements);
-    });
+            const html = await request(link);
+            log(`Page ${index + 1} loaded.`);
+            const dom = new jsdom.JSDOM(html);
+            const elements = Array.from(dom
+                .window
+                .document
+                .querySelectorAll(selector),
+            )
+                .slice(6)
+                .map(image => {
+                    return {
+                        number: getNumber(image),
+                        name: getName(image),
+                        link: getLink(image),
+                        class: getClass(image),
+                    };
+                });
+            return loadObjects(connection, elements);
+        });
 
-    Promise.all(tasks)
-        .then(() => connection.query({
-            sql: `update stats set value = ? where name = 'lastPull'`,
-            values: [`${+new Date / 1000 | 0}`],
-        }))
-        .then(() => {
-            res.code(200).send('OK');
-        })
+        Promise.all(tasks)
+            .then(() => connection.query({
+                sql: `update stats set value = ? where name = 'lastPull'`,
+                values: [`${+new Date / 1000 | 0}`],
+            }))
+            .then(() => {
+                reply.code(200).send('OK');
+            })
+    })
 }
 
 /**
