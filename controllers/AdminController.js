@@ -12,7 +12,7 @@ const links = [
 
 export async function pull(req, res) {
     const connection = await fastify.mysql.getConnection();
-    const tasks = links.map(async link => {
+    const tasks = links.map(async (link) => {
         console.log('Starting link', link, '...');
         const selector = ['keter', 'euclid', 'safe', 'na', 'thaumiel', 'nonstandard']
             .map(type => `img[alt^="${type}"]`)
@@ -21,10 +21,11 @@ export async function pull(req, res) {
         const html = await request(link);
         console.log('Page loaded.');
         const dom = new jsdom.JSDOM(html);
-        const objects = Array.from(dom
+        const elements = Array.from(dom
             .window
             .document
-            .querySelectorAll(selector))
+            .querySelectorAll(selector),
+        )
             .slice(6)
             .map(image => {
                 return {
@@ -34,11 +35,7 @@ export async function pull(req, res) {
                     class: getClass(image),
                 };
             });
-        console.log('Inserting to DB...');
-        return loadObjects(connection, objects).then(() => {
-            connection.release();
-            console.log(`${link} done!`);
-        });
+        return loadObjects(connection, elements);
     });
 
     Promise.all(tasks)
@@ -64,10 +61,19 @@ async function loadObjects(connection, objects) {
         template.push(`(?, ?, ?, ?)`);
         values.push(object.name, object.number, object.link, object.class);
     });
-    await connection.query({
-        sql: 'insert into objects (name, number, link, class) values ' + template.join(','),
-        values,
-    });
+    const sql = 'insert into objects (name, number, link, class) values '
+        + template.join(',')
+        + ' on duplicate key update name = values(name), link = values(link), class = values(class)';
+    try {
+        await connection.query({
+            sql,
+            values,
+        });
+    } catch (err) {
+        console.log(err);
+        console.log(sql);
+    }
+
 }
 
 function getAnchor(image) {
@@ -76,6 +82,11 @@ function getAnchor(image) {
         : image.nextElementSibling.querySelector('a');
 }
 
+/**
+ *
+ * @param image
+ * @return {null|number}
+ */
 function getNumber(image) {
     const link = getAnchor(image);
     if (!link) {
@@ -94,6 +105,11 @@ function getNumber(image) {
     }
 }
 
+/**
+ *
+ * @param image
+ * @return {null|string}
+ */
 function getName(image) {
     const link = getAnchor(image);
     if (link === null) {
@@ -107,6 +123,11 @@ function getName(image) {
     }
 }
 
+/**
+ *
+ * @param image
+ * @return {string|null}
+ */
 function getLink(image) {
     const link = getAnchor(image);
     if (link === null) {
@@ -124,6 +145,11 @@ function getLink(image) {
     }
 }
 
+/**
+ *
+ * @param image
+ * @return {string}
+ */
 function getClass(image) {
     return image.alt.match(/keter|euclid|safe|na|thaumiel|nonstandard/)[0];
 }
