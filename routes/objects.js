@@ -9,16 +9,7 @@ export default [
             response: {
                 200: {
                     type: 'array',
-                    items: {
-                        type: 'object',
-                        properties: {
-                            id: {type: 'integer'},
-                            name: {type: 'string'},
-                            number: {type: 'integer'},
-                            link: {type: 'string'},
-                            class: {type: 'string'},
-                        }
-                    }
+                    items: types.OBJECT_DATA
                 }
             }
         },
@@ -38,12 +29,12 @@ export default [
         handler: ObjectController.createObject
     },
     {
-        url: '/objects/:id',
+        url: '/objects/:number',
         method: 'PATCH',
         schema: {
             body: types.OBJECT_DATA,
             response: {
-                200: types.CREATED_OBJECT
+                200: types.OBJECT_DATA
             }
         },
         handler: ObjectController.updateObject
@@ -54,12 +45,7 @@ export default [
         handler: ObjectController.getByNumber
     },
     {
-        url: '/objects/byId/:id',
-        method: 'GET',
-        handler: ObjectController.getById
-    },
-    {
-        url: '/objects/:id',
+        url: '/objects/:number',
         method: 'DELETE',
         handler: ObjectController.deleteObject
     },

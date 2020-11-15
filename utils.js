@@ -8,17 +8,6 @@ const OBJECT_DATA = {
     }
 };
 
-const CREATED_OBJECT = {
-    type: 'object',
-    properties: {
-        id: {type: 'integer'},
-        name: {type: 'string'},
-        number: {type: 'integer'},
-        link: {type: 'string'},
-        class: {type: 'string'},
-    }
-};
-
 const STATS_DATA = {
     type: 'object',
     properties: {
@@ -27,7 +16,7 @@ const STATS_DATA = {
         lastPull: {type: 'integer'},
     }
 };
-export const types = {OBJECT_DATA, CREATED_OBJECT, STATS_DATA};
+export const types = {OBJECT_DATA, STATS_DATA};
 
 /**
  *
