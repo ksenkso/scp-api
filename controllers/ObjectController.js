@@ -47,8 +47,8 @@ export const getAll = async () => {
 export const createObject = async (req, res) => {
     const connection = await fastify.mysql.getConnection();
     const [rows] = await connection.query({
-        sql: 'insert into objects (name, number, link) value (?, ?, ?)',
-        values: [req.body.name, req.body.number, req.body.link]
+        sql: 'insert into objects (name, number, link, class) value (?, ?, ?, ?)',
+        values: [req.body.name, req.body.number, req.body.link, req.body.class]
     });
     connection.release();
     console.dir(rows);
