@@ -1,6 +1,8 @@
 import request from 'request-promise-native';
 import jsdom from 'jsdom';
 import fastify from '../server.js';
+import debug from 'debug';
+const log = debug('App:AdminController');
 
 const links = [
     'http://scpfoundation.net/scp-list',
@@ -12,14 +14,14 @@ const links = [
 
 export async function pull(req, res) {
     const connection = await fastify.mysql.getConnection();
-    const tasks = links.map(async (link) => {
-        console.log('Starting link', link, '...');
+    const tasks = links.map(async (link, index) => {
+        log('Starting link', link, '...')
         const selector = ['keter', 'euclid', 'safe', 'na', 'thaumiel', 'nonstandard']
             .map(type => `img[alt^="${type}"]`)
             .join(',');
 
         const html = await request(link);
-        console.log('Page loaded.');
+        log(`Page ${index + 1} loaded.`);
         const dom = new jsdom.JSDOM(html);
         const elements = Array.from(dom
             .window
@@ -70,8 +72,8 @@ async function loadObjects(connection, objects) {
             values,
         });
     } catch (err) {
-        console.log(err);
-        console.log(sql);
+        log(err);
+        log(sql);
     }
 
 }
