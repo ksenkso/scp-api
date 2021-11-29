@@ -6,42 +6,47 @@ import {withConnection} from '../utils.js';
 const log = debug('App:AdminController');
 
 const links = [
-    'http://scpfoundation.net/scp-list',
-    'http://scpfoundation.net/scp-list-2',
-    'http://scpfoundation.net/scp-list-3',
-    'http://scpfoundation.net/scp-list-4',
-    'http://scpfoundation.net/scp-list-5',
+    'http://scpfoundation.net/scp-series',
+    'http://scpfoundation.net/scp-series-2',
+    'http://scpfoundation.net/scp-series-3',
+    'http://scpfoundation.net/scp-series-4',
+    'http://scpfoundation.net/scp-series-5',
 ];
 
 export async function pull(req, reply) {
-    withConnection(async connection => {
+    return withConnection(connection => {
         const tasks = links.map(async (link, index) => {
             log('Starting link', link, '...')
             const selector = ['keter', 'euclid', 'safe', 'na', 'thaumiel', 'nonstandard']
                 .map(type => `img[alt^="${type}"]`)
                 .join(',');
-
-            const html = await request(link);
-            log(`Page ${index + 1} loaded.`);
-            const dom = new jsdom.JSDOM(html);
-            const elements = Array.from(dom
-                .window
-                .document
-                .querySelectorAll(selector),
-            )
-                .slice(6)
-                .map(image => {
-                    return {
-                        number: getNumber(image),
-                        name: getName(image),
-                        link: getLink(image),
-                        class: getClass(image),
-                    };
-                });
-            return loadObjects(connection, elements);
+            try {
+                const html = await request(link);
+                log(`Page ${index + 1} loaded.`);
+                const dom = new jsdom.JSDOM(html);
+                const elements = Array.from(dom
+                    .window
+                    .document
+                    .querySelectorAll(selector),
+                )
+                    .slice(6)
+                    .map(image => {
+                        const obj = {
+                            number: getNumber(image),
+                            name: getName(image),
+                            link: getLink(image),
+                            class: getClass(image),
+                        };
+                        console.log(obj.name);
+                        return obj;
+                    });
+                return loadObjects(connection, elements);
+            } catch (e) {
+                console.log('Error occurred: ', e.message);
+            }
         });
 
-        Promise.all(tasks)
+        return Promise.all(tasks)
             .then(() => connection.query({
                 sql: `update stats set value = ? where name = 'lastPull'`,
                 values: [`${+new Date / 1000 | 0}`],
@@ -75,7 +80,7 @@ async function loadObjects(connection, objects) {
         });
     } catch (err) {
         log(err);
-        log(sql);
+        // log(sql);
     }
 
 }
@@ -121,7 +126,7 @@ function getName(image) {
     }
     const content = link.nextSibling ? link.nextSibling.textContent : link.textContent;
     if (content.startsWith(' — ')) {
-        return content.slice(3)
+        return content.substring(3)
     } else {
         return content;
     }
