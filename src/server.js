@@ -5,8 +5,11 @@
 import Fastify from 'fastify';
 import fastifyMysql from 'fastify-mysql';
 import cors from 'fastify-cors';
+import pino from 'pino'
 
-export const server = Fastify({logger: true});
+export const server = Fastify({
+    logger: pino({ prettyPrint: true })
+});
 
 server.register(fastifyMysql, {
     promise: true,
