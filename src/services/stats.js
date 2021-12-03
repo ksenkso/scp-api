@@ -23,5 +23,12 @@ export const StatsService = {
                 lastPull: lastPull[0] ? +lastPull[0].lastPull : null
             }
         })
+    },
+
+    updateLastPull (date = new Date()) {
+        return withConnection(connection => connection.query({
+            sql: `update stats set value = ? where name = 'lastPull'`,
+            values: [`${+date / 1000 | 0}`],
+        }))
     }
 }

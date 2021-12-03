@@ -1,4 +1,4 @@
-import * as AdminController from '../controllers/AdminController.js';
+import {AdminController} from '../controllers/AdminController.js';
 
 export default [{
     url: '/pull',

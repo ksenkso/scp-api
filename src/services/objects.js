@@ -43,6 +43,33 @@ export const ObjectsService = {
         })
     },
 
+    createBulk(objects) {
+        return withConnection(async connection => {
+            let template = [];
+            let values = [];
+            objects.forEach(object => {
+                template.push(`(?, ?, ?, ?)`);
+                values.push(object.name, object.number, object.link, object.class);
+            });
+            const sql = `
+            insert into objects (name, number, link, class)
+                values ${template.join(',')}
+            on duplicate key update
+                name = values(name),
+                link = values(link),
+                class = values(class)
+            `;
+            try {
+                await connection.query({
+                    sql,
+                    values,
+                });
+            } catch (err) {
+                log(err);
+            }
+        })
+    },
+
     /**
      *
      * @param {string} number
