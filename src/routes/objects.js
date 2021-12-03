@@ -1,5 +1,5 @@
 import * as ObjectController from '../controllers/ObjectController.js';
-import {types} from "../utils.js";
+import {types} from "../../utils.js";
 
 export default [
     {

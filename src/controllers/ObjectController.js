@@ -1,5 +1,5 @@
 import debug from 'debug';
-import {withConnection} from '../utils.js';
+import {withConnection} from '../services/db.js';
 
 const log = debug('App:ObjectController');
 

@@ -6,17 +6,13 @@ import Fastify from 'fastify';
 import fastifyMysql from 'fastify-mysql';
 import cors from 'fastify-cors';
 
-const fastify = Fastify({logger: true});
+export const server = Fastify({logger: true});
 
-fastify.register(fastifyMysql, {
+server.register(fastifyMysql, {
     promise: true,
     connectionString: 'mysql://root:root@localhost/scp'
 });
 
-fastify.register(cors, {
+server.register(cors, {
     origin: true,
 });
-export default fastify;
-
-
-

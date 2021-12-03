@@ -1,5 +1,5 @@
-import * as StatsController from '../controllers/StatsController.js';
-import {types} from "../utils.js";
+import {StatsController} from '../controllers/StatsController.js';
+import {types} from "../../utils.js";
 
 const stats = [
     {
