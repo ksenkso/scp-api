@@ -1,4 +1,4 @@
-import * as ObjectController from '../controllers/ObjectController.js';
+import {ObjectController} from '../controllers/ObjectController.js';
 import {types} from "../../utils.js";
 
 export default [
